@@ -13,6 +13,7 @@ import datetime
 from os import listdir
 from os.path import isfile, join
 from datetime import datetime, timedelta
+import  sys
 today = datetime.today().strftime('%Y-%b-%d')
 yesterday = datetime.today() - timedelta(1)
 yesterday = yesterday.strftime('%Y-%b-%d')
@@ -24,22 +25,22 @@ tomorrow = tomorrow.strftime('%Y-%b-%d')
 chrome_options = Options()
 #chrome_options.add_extension("proxy.zip")
 chrome_options.add_argument("--incognito")
-driver = webdriver.Chrome(executable_path='/home/kevin/scripts/selenium/chromedriver', chrome_options=chrome_options)
+driver = webdriver.Chrome(executable_path='chromedriver.exe', chrome_options=chrome_options)
 
-url = 'https://xxxxxxxxxxxxxxxxxxxxxxxx'
-url2 = 'xxxxxxxxxxxxxxxxxx'
-url3 = 'xxxxxxxxxxxxxxxxxx'
+url = 'https://xxxxxx'
+#url2 = 'https://xxxxxx'
+url3 = 'https://xxxxxx/Extracted/'
 
 driver.get(url)
 driver.get(url3)
 page = driver.page_source
 soup = bs4(page, 'html.parser')
 
-regex2 = re.findall(r"(.*href)*=\"(.*)(mkv).*(.mkv\")(.*)(\d{4}-[a-zA-Z]{3}-\d{2} \d{2}:\d{2})", page)
+parsesoup = re.findall(r"(.*href)*=\"(.*)(mkv).*(.mkv\")(.*)(\d{4}-[a-zA-Z]{3}-\d{2} \d{2}:\d{2})", page)
 
 tables = soup.findChildren('table')
-my_table = tables[0]
-rows = my_table.findChildren(['tr'])
+tables1 = tables[0]
+rows = tables1.findChildren(['tr'])
 dates = []
 
 for row in rows:
@@ -53,35 +54,38 @@ dldates1 = [k for k in dates if (str(today)) in k]
 dldates2 = [k for k in dates if str(tomorrow) in k]
 dldates3 = (dldates + dldates1 + dldates2)
 
-x2 = []
+servermkv = []
 
-for items in regex2:
+for items in parsesoup:
 	for datez in dldates3:
 		if str(items[5]) == datez:
-			x2.append(str(items[1]) + 'mkv')
+			servermkv.append(str(items[1]) + 'mkv')
 
-pcfiles = os.listdir("/home/kevin/Downloads")
+pcdir = "/python"
+pcfiles = os.listdir(pcdir)
 pcfiles = sorted(pcfiles)
 
-downloadmkv = list(set(x2) - set(pcfiles))
+downloadmkv = list(set(servermkv) - set(pcfiles))
 downloadmkv = sorted(downloadmkv)
 
 for itemz in downloadmkv:
-	itemz = ('https://xxxxxxxx/Extracted/' + itemz)
+	itemz = ( url3 + itemz)
 	driver.get(itemz)
 
+waittime=0
+while waittime==0:
+    count=0
+    li = os.listdir("/python")
+    for waittime in li:
+        if waittime.endswith(".crdownload"):
+             count = count+1        
+    if count==0:
+        waittime=1
+    else:
+        waittime=0
 
-def download_wait(path_to_downloads):
-    seconds = 0
-    dl_wait = True
-    while dl_wait and seconds < 20:
-        time.sleep(1)
-        dl_wait = False
-        for fname in os.listdir(path_to_downloads):
-            if fname.endswith('.crdownload'):
-                dl_wait = True
-        seconds += 1
-    return seconds
-	
+time.sleep(2)
+        
 driver.close()
-
+driver.quit()
+sys.exit()
